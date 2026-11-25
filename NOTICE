@@ -1,0 +1,19 @@
+EasyNav Gradients
+Copyright 2026 Marvin Pancracio Manso (modifications)
+Copyright 2025 Intelligent Robotics Lab (original EasyNav A* planner)
+
+This software was adapted from the EasyNav NavMap A* planner:
+https://github.com/EasyNavigation/easynav_plugins
+
+It integrates with EasyNavigation and NavMap:
+https://github.com/EasyNavigation/EasyNavigation
+https://github.com/EasyNavigation/NavMap
+
+Modifications include potential propagation, gradient estimation and descent,
+cache management, and Elastic Band smoothing.
+
+Reference upstream revision verified: 703b73ae55bf6a419bf309b26084ca523b063ddf.
+Original files: planners/easynav_navmap_planner/src/easynav_navmap_planner/AStarPlanner.cpp
+and planners/easynav_navmap_planner/include/easynav_navmap_planner/AStarPlanner.hpp.
+Both carry Copyright 2025 Intelligent Robotics Lab and Apache-2.0 notices.
+The historical starting revision and any additional third-party rights remain subject to review.

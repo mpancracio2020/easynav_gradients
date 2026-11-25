@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the following metadata."
+title: "EasyNav Gradients"
+type: software
+authors:
+  - family-names: "Pancracio Manso"
+    given-names: "Marvin"
+version: "0.1.0"
+repository-code: "https://github.com/mpancracio2020/easynav_gradients"
+license: Apache-2.0
+keywords:
+  - ROS 2
+  - EasyNav
+  - NavMap
+  - path planning
+  - gradient descent
