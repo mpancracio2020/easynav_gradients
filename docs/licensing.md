@@ -5,20 +5,22 @@ Target license: Apache-2.0. This document records pending checks, not a legal cl
 ## Current snapshot
 
 - Root LICENSE and package.xml declare Apache-2.0.
-- gradient_planner.cpp and gradient_planner.hpp carry GPL-3.0-or-later notices and the author's copyright.
+- The initial planner files carried GPL-3.0-or-later notices. Their headers now declare Apache-2.0 on this review branch, based on the author's confirmation that the A* source used Apache-2.0; exact upstream notices remain to be checked.
 - The example node and benchmark scripts do not have individual license headers.
 - Current upstream EasyNavigation, NavMap and easynav_plugins repositories identify Apache-2.0 as their license (individual packages may differ).
 
 ## Release gate
 
 - [ ] Identify exact upstream revisions and any copied or adapted source files, including starter templates.
-- [ ] Confirm that the relevant code is available under Apache-2.0 or another compatible grant.
+- [x] Record the author's confirmation that the original A* planner was Apache-2.0.
+- [ ] Verify the exact upstream revision and applicable notices against that confirmation.
 - [ ] Confirm ownership or permission for all original contributions, including university or collaborator rights where applicable.
 - [ ] Preserve required copyright, attribution, modification and NOTICE information.
-- [ ] Replace outdated GPL headers only where the rights permit doing so, and add SPDX identifiers to cleared files.
+- [x] Prepare Apache-2.0 planner headers on the review branch.
+- [ ] Confirm the example node and benchmark scripts are cleared and add appropriate SPDX identifiers.
 - [ ] Review the public release tree and Git history for remaining contradictory notices and third-party material.
 
-If the GPL headers were only inherited boilerplate and all substantive code is original or authorized under Apache-2.0, document that finding before replacing them. If any GPL-only third-party code remains, obtain permission or replace it with independently authored or compatibly licensed code before releasing under Apache-2.0.
+The author's confirmation supports the proposed header update; it does not independently establish ownership or exhaustively verify all third-party rights. See the provisional NOTICE in the repository root. If any GPL-only third-party code remains, obtain permission or replace it with independently authored or compatibly licensed code before releasing under Apache-2.0.
 
 ## Upstream references
 
