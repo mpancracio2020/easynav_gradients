@@ -174,6 +174,12 @@ protected:
   void debug_stuck_cell(::navmap::NavCelId cell_id,
                         const ::navmap::NavMap &navmap);
 
+  // Optional diagnostic output; configured once during initialization.
+  bool profiling_enabled_{false};
+  bool metrics_enabled_{false};
+  std::string profiling_output_file_{"/tmp/gradient_planner_profile.csv"};
+  std::string metrics_output_file_{"/tmp/planner_metrics.csv"};
+  mutable std::ofstream profile_file_;
   std::ofstream metrics_file_;
 
   // ── Caché de potencial y gradiente ────────────────────────────────────────
