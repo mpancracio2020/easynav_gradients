@@ -24,4 +24,8 @@ See [benchmarks/README.md](benchmarks/README.md). Profiling remains enabled as i
 
 ## License status
 
-Publication is blocked pending verification of the original licensing and third-party attribution. The supplied LICENSE and package manifest declare Apache-2.0, while the planner source headers and original README declare GPL-3.0-or-later / GPL v3 respectively. Original declarations are preserved; this baseline does not resolve or replace them.
+The intended release license is Apache-2.0. See [LICENSE](LICENSE) for the license text and [the licensing review](docs/licensing.md) for the remaining provenance checks. Existing GPL notices in the planner sources are retained until the applicable rights and upstream revisions are confirmed. This private development snapshot is not yet cleared for public distribution.
+
+## Acknowledgments
+
+This planner was developed as a final degree project and integrates with [EasyNavigation](https://github.com/EasyNavigation/EasyNavigation) and [NavMap](https://github.com/EasyNavigation/NavMap). See also [easynav_plugins](https://github.com/EasyNavigation/easynav_plugins).
