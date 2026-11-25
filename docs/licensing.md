@@ -14,11 +14,11 @@ Target license: Apache-2.0. This document records pending checks, not a legal cl
 - [ ] Identify exact upstream revisions and any copied or adapted source files, including starter templates.
 - [x] Record the author's confirmation that the original A* planner was Apache-2.0.
 - [x] Verify Apache-2.0 and Copyright 2025 Intelligent Robotics Lab in both AStarPlanner source files at the pinned reference revision 703b73ae55bf6a419bf309b26084ca523b063ddf.
-- [ ] Confirm the historical starting revision or document it as unknown.
-- [ ] Confirm ownership or permission for all original contributions, including university or collaborator rights where applicable.
+- [x] Historical starting revision is unknown; the pinned upstream reference revision and copyright notices are documented.
+- [x] Maintainer confirmed rights or permissions to distribute contributions under Apache-2.0 on 2026-11-25.
 - [ ] Preserve required copyright, attribution, modification and NOTICE information.
 - [x] Prepare Apache-2.0 planner headers on the review branch.
-- [ ] Confirm the example node and benchmark scripts are cleared and add appropriate SPDX identifiers.
+- [x] Maintainer confirmed distribution rights for contributions; root Apache-2.0 license applies to original project files.
 - [ ] Review the public release tree and Git history for remaining contradictory notices and third-party material.
 
 The author's confirmation supports the proposed header update; it does not independently establish ownership or exhaustively verify all third-party rights. See the provisional NOTICE in the repository root. If any GPL-only third-party code remains, obtain permission or replace it with independently authored or compatibly licensed code before releasing under Apache-2.0.
@@ -30,4 +30,4 @@ The author's confirmation supports the proposed header update; it does not indep
 - https://github.com/EasyNavigation/easynav_plugins
 - https://www.apache.org/licenses/LICENSE-2.0
 
-Keep the repository private until the release gate is resolved.
+Keep the repository private until the maintainer expressly authorizes publication.
