@@ -5,7 +5,8 @@
 - [x] Compile in an isolated ROS 2 Jazzy Docker workspace (maintainer-reported success, 2026-11-25).
 - [ ] Repeat in CI using the pinned manifest.
 - [x] Verify installed library, plugin XML and configuration via Docker build checks; maintainer additionally confirmed the installed package and library.
-- [ ] Instantiate the plugin through the actual EasyNav bringup.
+- [ ] Pass automated pluginlib discovery and instantiation smoke tests (implemented; execution pending).
+- [ ] Initialize the plugin through the actual EasyNav bringup.
 
 ## Functional regression
 - [ ] Compare the release candidate with the original thesis baseline using identical maps, goals and parameters.
