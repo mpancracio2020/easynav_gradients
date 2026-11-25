@@ -15,8 +15,8 @@
 - [ ] Document cancellation and invalid-input behavior.
 
 ## Distribution
-- [ ] Verify required upstream attribution and licensing rights.
-- [ ] Review tracked files and Git history for private data.
+- [x] Verified upstream reference copyright and Apache-2.0 notices; maintainer confirmed distribution rights on 2026-11-25.
+- [x] Basic tracked-file and history audit completed by maintainer; no matches for the tested secret patterns. This is not an exhaustive secret scan.
 - [ ] Validate software citation metadata.
 - [ ] Publish only after owner approval.
 
