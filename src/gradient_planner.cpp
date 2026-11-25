@@ -40,13 +40,7 @@ struct QueueElement {
   ::navmap::NavCelId cell_id;
   bool operator>(const QueueElement &other) const { return cost > other.cost; }
 };
-// Profiling por función
-// Escribe en /tmp/gradient_planner_profile.csv una fila por cada llamada a una
-// función instrumentada con PROFILE_FUNCTION():
-// timestamp_us,funcion,duracion_ms El fichero se abre una única vez
-// (thread-safe gracias a "magic statics" de C++11) y cada escritura va
-// protegida por un mutex para evitar líneas entrelazadas si el nodo tiene
-// varios hilos (callbacks, timers, etc.).
+// Optional per-instance CSV profiling.
 namespace {
 // Internal numerical constants. These values are implementation details,
 // not runtime tuning parameters.
@@ -54,47 +48,46 @@ constexpr double kZeroGradientThreshold = 1e-4;
 constexpr double kGoalOrientationDotTolerance = 1e-6;
 constexpr double kGeometryEpsilon = 1e-6;
 constexpr double kGradientWeightEpsilon = 1e-3;
-std::ofstream &profile_stream() {
-  static std::ofstream file("/tmp/gradient_planner_profile.csv", std::ios::app);
-  static bool header_written = []() {
-    file << "timestamp_us,function,duration_ms\n";
-    file.flush();
-    return true;
-  }();
-  (void)header_written;
-  return file;
-}
 std::mutex &profile_mutex() {
   static std::mutex m;
   return m;
 }
+
 class ScopedTimer {
 public:
-  explicit ScopedTimer(const char *name)
-      : name_(name), t0_(std::chrono::high_resolution_clock::now()) {}
+  ScopedTimer(const char *name, std::ofstream *stream)
+      : name_(name), stream_(stream) {
+    if (stream_) {
+      t0_ = std::chrono::steady_clock::now();
+    }
+  }
+
   ~ScopedTimer() {
-    const auto t1 = std::chrono::high_resolution_clock::now();
+    if (!stream_) {
+      return;
+    }
+    const auto t1 = std::chrono::steady_clock::now();
     const double ms =
         std::chrono::duration<double, std::milli>(t1 - t0_).count();
     const auto us = std::chrono::duration_cast<std::chrono::microseconds>(
-                        t1.time_since_epoch())
-                        .count();
+        std::chrono::system_clock::now().time_since_epoch()).count();
     std::lock_guard<std::mutex> lock(profile_mutex());
-    auto &f = profile_stream();
-    f << us << "," << name_ << "," << ms << "\n";
-    f.flush();
+    *stream_ << us << "," << name_ << "," << ms << "\n";
+    stream_->flush();
   }
 
 private:
   const char *name_;
-  std::chrono::high_resolution_clock::time_point t0_;
+  std::ofstream *stream_;
+  std::chrono::steady_clock::time_point t0_{};
 };
-// __func__ da el nombre crudo de la función (sin namespace/clase), que es
-// suficiente para diferenciarlas en este fichero. Si se prefiere diferenciar
-// overloads o namespaces, se puede pasar __PRETTY_FUNCTION__ en su lugar.
-#define PROFILE_FUNCTION() ScopedTimer _scoped_timer_##__LINE__(__func__)
-std::size_t compute_navmap_signature(const ::navmap::NavMap &navmap) {
-  PROFILE_FUNCTION();
+
+#define PROFILE_FUNCTION() \
+  ScopedTimer scoped_timer(__func__, profiling_enabled_ ? &profile_file_ : nullptr)
+
+std::size_t compute_navmap_signature(const ::navmap::NavMap &navmap,
+                                    std::ofstream *profile_file) {
+  ScopedTimer scoped_timer(__func__, profile_file);
   // Lightweight 64-bit FNV-1a style signature. We hash the raw IEEE-754 bits
   // of every vertex coordinate and every triangle vertex index, avoiding the
   // repeated std::hash<float> calls used by the previous implementation.
@@ -134,8 +127,9 @@ std::size_t compute_navmap_signature(const ::navmap::NavMap &navmap) {
 }
 } // namespace
 // Utilidades libres
-static double compute_path_length(const nav_msgs::msg::Path &path) {
-  PROFILE_FUNCTION();
+static double compute_path_length(const nav_msgs::msg::Path &path,
+                                  std::ofstream *profile_file = nullptr) {
+  ScopedTimer scoped_timer(__func__, profile_file);
   double total = 0.0;
   for (size_t i = 1; i < path.poses.size(); ++i) {
     const auto &a = path.poses[i - 1].pose.position;
@@ -162,9 +156,49 @@ GradientPlanner::~GradientPlanner() {
 }
 // on_initialize
 void GradientPlanner::on_initialize() {
-  PROFILE_FUNCTION();
   auto node = get_node();
   const auto &pn = get_plugin_name();
+  node->declare_parameter<bool>(pn + ".profiling_enabled", profiling_enabled_);
+  node->declare_parameter<bool>(pn + ".metrics_enabled", metrics_enabled_);
+  node->declare_parameter<std::string>(pn + ".profiling_output_file",
+                                      profiling_output_file_);
+  node->declare_parameter<std::string>(pn + ".metrics_output_file",
+                                      metrics_output_file_);
+  node->get_parameter(pn + ".profiling_enabled", profiling_enabled_);
+  node->get_parameter(pn + ".metrics_enabled", metrics_enabled_);
+  node->get_parameter(pn + ".profiling_output_file", profiling_output_file_);
+  node->get_parameter(pn + ".metrics_output_file", metrics_output_file_);
+
+  if (profiling_enabled_ && metrics_enabled_ &&
+      profiling_output_file_ == metrics_output_file_) {
+    RCLCPP_WARN(node->get_logger(),
+                "Profiling and metrics must use different files; disabling metrics.");
+    metrics_enabled_ = false;
+  }
+
+  if (profiling_enabled_) {
+    std::lock_guard<std::mutex> lock(profile_mutex());
+    profile_file_.open(profiling_output_file_, std::ios::app);
+    if (!profile_file_) {
+      RCLCPP_WARN(node->get_logger(), "Cannot open profiling file: %s",
+                  profiling_output_file_.c_str());
+      profiling_enabled_ = false;
+    } else if (profile_file_.tellp() == std::streampos(0)) {
+      profile_file_ << "timestamp_us,function,duration_ms\n";
+      profile_file_.flush();
+    }
+  }
+
+  if (metrics_enabled_) {
+    metrics_file_.open(metrics_output_file_, std::ios::app);
+    if (!metrics_file_) {
+      RCLCPP_WARN(node->get_logger(), "Cannot open metrics file: %s",
+                  metrics_output_file_.c_str());
+      metrics_enabled_ = false;
+    }
+  }
+
+  PROFILE_FUNCTION();
   node->declare_parameter<bool>(pn + ".continuous_replan", continuous_replan_);
   node->declare_parameter<int>(pn + ".max_iterations", max_iterations_);
   node->declare_parameter<double>(pn + ".smoothing_factor", smoothing_factor_);
@@ -273,7 +307,6 @@ void GradientPlanner::on_initialize() {
       "robot_width=%.3f m, smoothing_factor=%.3f",
       continuous_replan_ ? "true" : "false", max_iterations_, robot_width_,
       smoothing_factor_);
-  metrics_file_.open("/tmp/planner_metrics.csv", std::ios::app);
 }
 // update
 static bool sameGoalPosition(const geometry_msgs::msg::Pose &a,
@@ -364,7 +397,7 @@ void GradientPlanner::update(NavState &nav_state) {
   }
   // Detectar cambios de geometría/topología del NavMap.
   const std::size_t current_navmap_signature =
-      compute_navmap_signature(navmap_);
+      compute_navmap_signature(navmap_, profiling_enabled_ ? &profile_file_ : nullptr);
   const bool map_changed = !navmap_signature_initialized_ ||
                            current_navmap_signature != navmap_signature_;
   if (map_changed) {
@@ -401,7 +434,8 @@ void GradientPlanner::update(NavState &nav_state) {
   if (!geometry_cached_) {
     build_geometry_cache(navmap_);
   }
-  auto t0 = std::chrono::high_resolution_clock::now();
+  const auto t0 = metrics_enabled_ ? std::chrono::steady_clock::now()
+                                  : std::chrono::steady_clock::time_point{};
   auto poses = compute_gradient_path(navmap_, robot_pose.pose.pose, goal);
   if (!poses.empty()) {
     current_path_.header.stamp = get_node()->now();
@@ -421,12 +455,15 @@ void GradientPlanner::update(NavState &nav_state) {
     RCLCPP_ERROR(get_node()->get_logger(), "Empty path generated!");
   }
   nav_state.set("path", current_path_);
-  auto t1 = std::chrono::high_resolution_clock::now();
-  double planning_time_ms =
-      std::chrono::duration<double, std::milli>(t1 - t0).count();
-  metrics_file_ << planning_time_ms << "," << current_path_.poses.size() << ","
-                << compute_path_length(current_path_) << "\n";
-  metrics_file_.flush();
+  if (metrics_enabled_) {
+    const auto t1 = std::chrono::steady_clock::now();
+    const double planning_time_ms =
+        std::chrono::duration<double, std::milli>(t1 - t0).count();
+    metrics_file_ << planning_time_ms << "," << current_path_.poses.size() << ","
+                  << compute_path_length(current_path_,
+                      profiling_enabled_ ? &profile_file_ : nullptr) << "\n";
+    metrics_file_.flush();
+  }
 }
 // compute_gradient_path.
 std::vector<geometry_msgs::msg::Pose>
