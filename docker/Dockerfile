@@ -30,6 +30,13 @@ RUN source install/setup.bash \
     && test -f "$prefix/lib/libeasynav_gradients.so" \
     && test -f "$prefix/share/easynav_gradients/easynav_gradients_plugins.xml" \
     && test -f "$prefix/share/easynav_gradients/config/params.yaml"
+# Enable tests only for the planner; keep upstream dependency builds unchanged.
+RUN source /opt/ros/jazzy/setup.bash \
+    && colcon build --packages-select easynav_gradients \
+      --executor sequential --event-handlers console_direct+ \
+      --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON \
+    && source install/setup.bash \
+    && ./build/easynav_gradients/tests/test_plugin_loading
 COPY docker/entrypoint.sh /usr/local/bin/gradients-entrypoint
 RUN chmod +x /usr/local/bin/gradients-entrypoint
 ENTRYPOINT ["/usr/local/bin/gradients-entrypoint"]
