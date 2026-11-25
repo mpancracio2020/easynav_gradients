@@ -1,0 +1,19 @@
+# Candidate upstream releases from the official EasyNav source installation guide.
+# Compatibility with this planner must be established by the Docker build.
+repositories:
+  EasyNavigation:
+    type: git
+    url: https://github.com/EasyNavigation/EasyNavigation.git
+    version: 0.5.0
+  easynav_plugins:
+    type: git
+    url: https://github.com/EasyNavigation/easynav_plugins.git
+    version: 0.5.0
+  NavMap:
+    type: git
+    url: https://github.com/EasyNavigation/NavMap.git
+    version: 0.6.0
+  yaets:
+    type: git
+    url: https://github.com/fmrico/yaets.git
+    version: 1.2.0
