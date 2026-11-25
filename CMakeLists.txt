@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(ament_cmake REQUIRED)
+find_package(Eigen3 REQUIRED NO_MODULE)
 find_package(easynav_common REQUIRED)
 find_package(easynav_core REQUIRED)
 find_package(pluginlib REQUIRED)
@@ -33,6 +34,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   ${grid_map_ros_INCLUDE_DIRS}
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC
+  Eigen3::Eigen
   easynav_common::easynav_common
   easynav_core::easynav_core
   navmap_core::navmap_core
@@ -105,6 +107,7 @@ install(FILES
 pluginlib_export_plugin_description_file(easynav_core easynav_gradients_plugins.xml)
 
 ament_export_dependencies(
+  Eigen3
   easynav_common
   easynav_core
   pluginlib
