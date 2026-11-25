@@ -57,6 +57,8 @@ ros2 pkg prefix easynav_gradients
 
 Access to the private repository is required until publication. rosdep may require additional upstream packages to be present in the workspace.
 
+For a separate overlay and exact dependency capture, see [installation guide](docs/installation.md).
+
 ## Integration
 
 Register the planner in the existing EasyNav planner configuration using:
@@ -70,7 +72,11 @@ Register the planner in the existing EasyNav planner configuration using:
 
 Use [config/params.yaml](config/params.yaml) as the parameter reference. Its plugin instance is named `gradients`; match that name to the instance in your EasyNav configuration. This repository is a planner plugin, not a standalone navigation stack. It requires an existing EasyNav bringup that supplies the NavMap, robot pose and goals.
 
-See [parameter reference](docs/parameters.md) for tuning and validation details.
+See [usage guide](docs/usage.md) for runtime integration and [parameter reference](docs/parameters.md) for tuning and validation details.
+
+## Validation
+
+The metadata workflow checks package and plugin XML, baseline parameter values, citation metadata and Python syntax. See the [release validation checklist](docs/release-validation.md). A successful metadata check is not a ROS build or a functional test.
 
 ## Benchmarks
 
