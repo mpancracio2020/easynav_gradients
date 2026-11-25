@@ -7,51 +7,51 @@ planner_node:
 
     gradients:
       # -----------------------------------------------------------------------
-      # Replanificación y límites generales
+      # Replanning and general limits
       # -----------------------------------------------------------------------
 
-      # Recalcula el path desde la pose actual en cada update().
-      # El potencial y el gradiente se reutilizan mientras goal y NavMap no cambien.
+      # Recompute the path from the current pose on every update().
+      # Reuse potential and gradient fields while the goal and NavMap are unchanged.
       continuous_replan: false
 
-      # Número máximo de iteraciones del descenso por planificación (> 0).
+      # Maximum descent iterations per planning attempt (> 0).
       max_iterations: 500
 
-      # Tolerancia para considerar que dos goals tienen la misma posición [m] (> 0).
+      # Tolerance for treating two goal positions as equal [m] (> 0).
       goal_change_epsilon: 0.001
 
       # -----------------------------------------------------------------------
-      # Campo de gradiente y selección de la siguiente NavCel
+      # Gradient field and next NavCel selection
       # -----------------------------------------------------------------------
 
-      # Mezcla del gradiente de una NavCel con los gradientes de sus vecinos [0, 1].
+      # Blend a NavCel gradient with the neighborhood average [0, 1].
       smoothing_factor: 0.4
 
-      # Peso del descenso de potencial frente a la alineación con el gradiente (>= 0).
+      # Weight of potential decrease relative to gradient alignment (>= 0).
       potential_drop_weight: 0.75
 
       # -----------------------------------------------------------------------
-      # Restricción de ancho entre NavCels
+      # Width restriction between NavCels
       # -----------------------------------------------------------------------
 
-      # Ancho mínimo requerido en la arista compartida entre dos NavCels [m].
-      # Un valor <= 0 desactiva este filtro.
+      # Minimum required width of the shared edge between two NavCels [m].
+      # A value <= 0 disables this filter.
       robot_width: 0.8
 
       # -----------------------------------------------------------------------
       # Elastic Band
       # -----------------------------------------------------------------------
 
-      # Peso que mantiene cada waypoint cerca de su posición original (>= 0).
+      # Weight keeping each waypoint close to its original position (>= 0).
       elastic_w_data: 0.10
 
-      # Peso de suavizado entre waypoints consecutivos (>= 0).
+      # Smoothing weight between consecutive waypoints (>= 0).
       elastic_w_smooth: 0.35
 
-      # Máximo de iteraciones del Elastic Band (> 0).
-      # 15 permite alcanzar una convergencia más estable en los paths probados.
+      # Maximum Elastic Band iterations (> 0).
+      # 15 iterations provide more stable convergence in the tested paths.
       elastic_max_iterations: 15
 
-      # Desplazamiento máximo [m] por debajo del cual se considera convergido (> 0).
-      # 2 mm evita iteraciones finales con mejoras visualmente despreciables.
+      # Maximum displacement [m] below which convergence is declared (> 0).
+      # 2 mm avoids final iterations with visually negligible improvements.
       elastic_convergence_threshold: 0.002
