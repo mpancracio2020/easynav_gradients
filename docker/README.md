@@ -1,6 +1,6 @@
 # Isolated ROS 2 Jazzy build
 
-This build uses the official ROS Jazzy base image and public EasyNav release tags listed in the root .repos file. They are candidates, not a certified compatible set. No host ROS workspace, credentials or device access is required. The image is not published to a registry.
+This build uses the official ROS Jazzy base image and public upstream Git commits pinned in the root .repos file. The maintainer successfully compiled and installed the planner using these resolved revisions on 2026-11-25. A fresh CI build with the pinned manifest and functional simulation remain pending. No host ROS workspace, credentials or device access is required. The image is not published to a registry.
 
 From the repository root:
 
@@ -18,7 +18,7 @@ Inspect the exact resolved revisions after a successful build:
 docker run --rm easynav-gradients:jazzy cat /opt/dependencies-resolved.repos
 ```
 
-The CI workflow runs the same Dockerfile and uploads the resolved revision list after a successful build. Pin the validated commit SHAs and base-image digest in a later release step; release tags and apt packages alone do not provide bit-for-bit reproducibility.
+The CI workflow runs the same Dockerfile and uploads the resolved revision list after a successful build. The four source commits are now pinned. The base-image digest, apt package versions and any additional transitive inputs are not fully locked, so this does not guarantee bit-for-bit reproducibility.
 
 If compilation fails, inspect the first error in the Docker build log. Do not modify the working thesis workspace. The original planner remains the reference and API compatibility changes require separate review.
 
