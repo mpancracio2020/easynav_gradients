@@ -4,7 +4,7 @@ Gradient-based global path planning on triangular navigation meshes for EasyNav 
 
 Developed by Marvin Pancracio Manso as part of a Robotics Engineering bachelor's thesis at Universidad Rey Juan Carlos (URJC), this C++ planner extends the EasyNav NavMap A* planner into a potential-field and gradient-descent approach.
 
-**Status:** private pre-release. The original planner has been functionally validated by its author; a clean external build, dependency pinning, automated regression tests and attribution review are pending.
+**Status:** private pre-release. The original planner has been functionally validated by its author; an isolated ROS 2 Jazzy Docker build and package installation were verified by its author on 2026-11-25. Eight automated plugin and synthetic mesh tests passed in the maintainer's Docker build. CI build confirmation, broader regression testing and attribution review are pending.
 
 ## Features
 
@@ -38,9 +38,11 @@ The potential and gradient fields are reused when the map and goal position rema
 - Compatible [EasyNavigation](https://github.com/EasyNavigation/EasyNavigation), [NavMap](https://github.com/EasyNavigation/NavMap) and [easynav_plugins](https://github.com/EasyNavigation/easynav_plugins) source packages.
 - Dependencies declared in [package.xml](package.xml).
 
-Exact upstream revisions have not yet been pinned. Use the compatible EasyNav workspace in which the planner was developed until a reproducible dependency manifest is available.
+The source dependency manifest pins the four Git revisions resolved in the successful local Docker build. The ROS base image and apt packages are not digest/version-locked.
 
 ## Build
+
+For an isolated build without an existing host ROS workspace, see [Docker instructions](docker/README.md). The tested source revisions are in [easynav_gradients.repos](easynav_gradients.repos); a fresh CI build using the pinned manifest remains to be verified.
 
 In an existing compatible ROS 2 workspace, clone this repository under src (do not keep two packages named easynav_gradients in one workspace):
 
@@ -75,6 +77,8 @@ Use [config/params.yaml](config/params.yaml) as the parameter reference. Its plu
 See [usage guide](docs/usage.md) for runtime integration and [parameter reference](docs/parameters.md) for tuning and validation details.
 
 ## Validation
+
+The Docker build runs eight automated tests covering plugin loading, initialization, connected and disconnected meshes, path reuse, topology changes and goal orientation. The maintainer reported 8/8 passing (153 ms total). Full bringup and independent collision-clearance validation remain pending.
 
 The metadata workflow checks package and plugin XML, baseline parameter values, citation metadata and Python syntax. See the [release validation checklist](docs/release-validation.md). A successful metadata check is not a ROS build or a functional test.
 

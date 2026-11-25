@@ -1,14 +1,16 @@
 # Release validation
 
 ## Build and installation
-- [ ] Capture the exact tested public upstream dependency revisions.
-- [ ] Rebuild in a clean ROS 2 Jazzy workspace.
-- [ ] Verify installed library, plugin XML and configuration.
-- [ ] Instantiate the plugin through the actual EasyNav bringup.
+- [x] Capture the four source revisions from the successful local Docker build and pin them in the manifest.
+- [x] Compile in an isolated ROS 2 Jazzy Docker workspace (maintainer-reported success, 2026-11-25).
+- [ ] Repeat in CI using the pinned manifest.
+- [x] Verify installed library, plugin XML and configuration via Docker build checks; maintainer additionally confirmed the installed package and library.
+- [x] Pass automated pluginlib discovery and instantiation smoke tests (maintainer-reported Docker run: 2/2 passed, 18 ms total).
+- [ ] Initialize the plugin through the actual EasyNav bringup.
 
 ## Functional regression
 - [ ] Compare the release candidate with the original thesis baseline using identical maps, goals and parameters.
-- [ ] Check reachable and unreachable goals, goal orientation, map changes and path reuse.
+- [x] Check reachable and unreachable goals, goal orientation, map changes and path reuse on synthetic triangular meshes (maintainer-reported Docker build: 8/8 tests passed, 153 ms total, including plugin loading and parameter initialization).
 - [ ] Check path segments and robot footprint clearance independently of waypoint projection.
 - [ ] Document cancellation and invalid-input behavior.
 

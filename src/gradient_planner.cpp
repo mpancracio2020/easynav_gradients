@@ -1,4 +1,5 @@
-// Copyright 2026 Marvin Pancracio Manso
+// Copyright 2025 Intelligent Robotics Lab (original EasyNav A* planner)
+// Copyright 2026 Marvin Pancracio Manso (gradient planner modifications)
 //
 // Adapted from the EasyNav NavMap A* planner.
 // Modified to implement gradient-based planning, caching and Elastic Band smoothing.

@@ -1,0 +1,19 @@
+# Exact upstream revisions from the successful local ROS 2 Jazzy Docker build.
+# Compilation and installation verified by the maintainer on 2026-11-25.
+repositories:
+  EasyNavigation:
+    type: git
+    url: https://github.com/EasyNavigation/EasyNavigation.git
+    version: 57c2c215518b8b562bbf1861bba2f4160583b4fa
+  NavMap:
+    type: git
+    url: https://github.com/EasyNavigation/NavMap.git
+    version: 6893dbd6f3bea2b6983cc2aabe0c4abcea62ee25
+  easynav_plugins:
+    type: git
+    url: https://github.com/EasyNavigation/easynav_plugins.git
+    version: 703b73ae55bf6a419bf309b26084ca523b063ddf
+  yaets:
+    type: git
+    url: https://github.com/fmrico/yaets.git
+    version: 2f4de5d00bc87b56dbc2c6f23ff42f2016b817eb
