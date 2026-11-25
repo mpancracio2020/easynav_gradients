@@ -10,7 +10,7 @@
 
 ## Functional regression
 - [ ] Compare the release candidate with the original thesis baseline using identical maps, goals and parameters.
-- [ ] Check reachable and unreachable goals, goal orientation, map changes and path reuse.
+- [x] Check reachable and unreachable goals, goal orientation, map changes and path reuse on synthetic triangular meshes (maintainer-reported Docker build: 8/8 tests passed, 153 ms total, including plugin loading and parameter initialization).
 - [ ] Check path segments and robot footprint clearance independently of waypoint projection.
 - [ ] Document cancellation and invalid-input behavior.
 
