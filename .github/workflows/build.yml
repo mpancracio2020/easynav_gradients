@@ -18,6 +18,8 @@ jobs:
         run: docker build --progress=plain --build-arg BUILD_JOBS=2 -t easynav-gradients:ci -f docker/Dockerfile .
       - name: Verify installed package
         run: docker run --rm easynav-gradients:ci ros2 pkg prefix easynav_gradients
+      - name: Verify plugin discovery and loading
+        run: docker run --rm easynav-gradients:ci /opt/gradients_ws/build/easynav_gradients/tests/test_plugin_loading
       - name: Export resolved upstream revisions
         run: docker run --rm easynav-gradients:ci cat /opt/dependencies-resolved.repos > dependencies-resolved.repos
       - uses: actions/upload-artifact@v4
