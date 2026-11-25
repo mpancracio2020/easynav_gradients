@@ -4,7 +4,7 @@ Gradient-based global path planning on triangular navigation meshes for EasyNav 
 
 Developed by Marvin Pancracio Manso as part of a Robotics Engineering bachelor's thesis at Universidad Rey Juan Carlos (URJC), this C++ planner extends the EasyNav NavMap A* planner into a potential-field and gradient-descent approach.
 
-**Status:** private pre-release. The original planner has been functionally validated by its author; an isolated ROS 2 Jazzy Docker build and package installation were verified by its author on 2026-11-25. Automated regression tests, CI build confirmation and attribution review are pending.
+**Status:** private pre-release. The original planner has been functionally validated by its author; an isolated ROS 2 Jazzy Docker build and package installation were verified by its author on 2026-11-25. Eight automated plugin and synthetic mesh tests passed in the maintainer's Docker build. CI build confirmation, broader regression testing and attribution review are pending.
 
 ## Features
 
@@ -77,6 +77,8 @@ Use [config/params.yaml](config/params.yaml) as the parameter reference. Its plu
 See [usage guide](docs/usage.md) for runtime integration and [parameter reference](docs/parameters.md) for tuning and validation details.
 
 ## Validation
+
+The Docker build runs eight automated tests covering plugin loading, initialization, connected and disconnected meshes, path reuse, topology changes and goal orientation. The maintainer reported 8/8 passing (153 ms total). Full bringup and independent collision-clearance validation remain pending.
 
 The metadata workflow checks package and plugin XML, baseline parameter values, citation metadata and Python syntax. See the [release validation checklist](docs/release-validation.md). A successful metadata check is not a ROS build or a functional test.
 
