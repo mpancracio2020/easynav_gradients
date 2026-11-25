@@ -9,6 +9,7 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <depend>eigen</depend>
   <depend>easynav_navmap_planner</depend>
   <depend>easynav_common</depend>
   <depend>easynav_core</depend>
