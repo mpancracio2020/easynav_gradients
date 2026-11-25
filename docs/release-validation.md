@@ -1,9 +1,10 @@
 # Release validation
 
 ## Build and installation
-- [ ] Capture the exact tested public upstream dependency revisions.
-- [ ] Rebuild in a clean ROS 2 Jazzy workspace.
-- [ ] Verify installed library, plugin XML and configuration.
+- [x] Capture the four source revisions from the successful local Docker build and pin them in the manifest.
+- [x] Compile in an isolated ROS 2 Jazzy Docker workspace (maintainer-reported success, 2026-11-25).
+- [ ] Repeat in CI using the pinned manifest.
+- [x] Verify installed library, plugin XML and configuration via Docker build checks; maintainer additionally confirmed the installed package and library.
 - [ ] Instantiate the plugin through the actual EasyNav bringup.
 
 ## Functional regression
