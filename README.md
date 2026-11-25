@@ -4,7 +4,7 @@ Gradient-based global path planning on triangular navigation meshes for EasyNav 
 
 Developed by Marvin Pancracio Manso as part of a Robotics Engineering bachelor's thesis at Universidad Rey Juan Carlos (URJC), this C++ planner extends the EasyNav NavMap A* planner into a potential-field and gradient-descent approach.
 
-**Status:** private pre-release. The original planner has been functionally validated by its author; a clean external build, dependency pinning, automated regression tests and attribution review are pending.
+**Status:** private pre-release. The original planner has been functionally validated by its author; an isolated ROS 2 Jazzy Docker build and package installation were verified by its author on 2026-11-25. Automated regression tests, CI build confirmation and attribution review are pending.
 
 ## Features
 
@@ -38,11 +38,11 @@ The potential and gradient fields are reused when the map and goal position rema
 - Compatible [EasyNavigation](https://github.com/EasyNavigation/EasyNavigation), [NavMap](https://github.com/EasyNavigation/NavMap) and [easynav_plugins](https://github.com/EasyNavigation/easynav_plugins) source packages.
 - Dependencies declared in [package.xml](package.xml).
 
-A candidate dependency manifest is available for isolated builds. Exact compatible commit SHAs have not yet been established.
+The source dependency manifest pins the four Git revisions resolved in the successful local Docker build. The ROS base image and apt packages are not digest/version-locked.
 
 ## Build
 
-For an isolated build without an existing host ROS workspace, see [Docker instructions](docker/README.md). The candidate upstream release set is in [easynav_gradients.repos](easynav_gradients.repos); compatibility is pending a successful CI build.
+For an isolated build without an existing host ROS workspace, see [Docker instructions](docker/README.md). The tested source revisions are in [easynav_gradients.repos](easynav_gradients.repos); a fresh CI build using the pinned manifest remains to be verified.
 
 In an existing compatible ROS 2 workspace, clone this repository under src (do not keep two packages named easynav_gradients in one workspace):
 
