@@ -1,0 +1,26 @@
+name: ROS 2 Jazzy Docker build
+on:
+  pull_request:
+  push:
+    branches: [develop, main, ci/docker-jazzy]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build isolated ROS workspace
+        run: docker build --progress=plain --build-arg BUILD_JOBS=2 -t easynav-gradients:ci -f docker/Dockerfile .
+      - name: Verify installed package
+        run: docker run --rm easynav-gradients:ci ros2 pkg prefix easynav_gradients
+      - name: Export resolved upstream revisions
+        run: docker run --rm easynav-gradients:ci cat /opt/dependencies-resolved.repos > dependencies-resolved.repos
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dependencies-resolved
+          path: dependencies-resolved.repos
