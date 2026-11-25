@@ -36,19 +36,19 @@
 #include <sstream>
 namespace easynav {
 namespace navmap {
-// Tipos internos
+// Internal types
 struct QueueElement {
   double cost;
   ::navmap::NavCelId cell_id;
   bool operator>(const QueueElement &other) const { return cost > other.cost; }
 };
-// Profiling por función
-// Escribe en /tmp/gradient_planner_profile.csv una fila por cada llamada a una
-// función instrumentada con PROFILE_FUNCTION():
-// timestamp_us,funcion,duracion_ms El fichero se abre una única vez
-// (thread-safe gracias a "magic statics" de C++11) y cada escritura va
-// protegida por un mutex para evitar líneas entrelazadas si el nodo tiene
-// varios hilos (callbacks, timers, etc.).
+// Per-function profiling
+// Writes one row to /tmp/gradient_planner_profile.csv for each call to a
+// function instrumented with PROFILE_FUNCTION():
+// timestamp_us,function,duration_ms. The file is opened once
+// (thread-safe through C++11 magic statics), and each write is
+// protected by a mutex to prevent interleaved rows when the node uses
+// multiple threads (callbacks, timers, etc.).
 namespace {
 // Internal numerical constants. These values are implementation details,
 // not runtime tuning parameters.
@@ -91,9 +91,9 @@ private:
   const char *name_;
   std::chrono::high_resolution_clock::time_point t0_;
 };
-// __func__ da el nombre crudo de la función (sin namespace/clase), que es
-// suficiente para diferenciarlas en este fichero. Si se prefiere diferenciar
-// overloads o namespaces, se puede pasar __PRETTY_FUNCTION__ en su lugar.
+// __func__ provides the unqualified function name (without namespace/class),
+// which is sufficient to distinguish functions in this file. To distinguish
+// overloads or namespaces, __PRETTY_FUNCTION__ can be used instead.
 #define PROFILE_FUNCTION() ScopedTimer _scoped_timer_##__LINE__(__func__)
 std::size_t compute_navmap_signature(const ::navmap::NavMap &navmap) {
   PROFILE_FUNCTION();
@@ -135,7 +135,7 @@ std::size_t compute_navmap_signature(const ::navmap::NavMap &navmap) {
   return static_cast<std::size_t>(hash);
 }
 } // namespace
-// Utilidades libres
+// Free helper functions
 static double compute_path_length(const nav_msgs::msg::Path &path) {
   PROFILE_FUNCTION();
   double total = 0.0;
@@ -291,14 +291,14 @@ static bool sameGoalOrientation(const geometry_msgs::msg::Quaternion &a,
       std::sqrt(a.x * a.x + a.y * a.y + a.z * a.z + a.w * a.w);
   const double norm_b =
       std::sqrt(b.x * b.x + b.y * b.y + b.z * b.z + b.w * b.w);
-  // Si alguna orientación no es un cuaternión válido, comparar componentes.
+  // If either orientation is not a valid quaternion, compare components.
   if (norm_a < kGeometryEpsilon || norm_b < kGeometryEpsilon) {
     return std::abs(a.x - b.x) < kGeometryEpsilon &&
            std::abs(a.y - b.y) < kGeometryEpsilon &&
            std::abs(a.z - b.z) < kGeometryEpsilon &&
            std::abs(a.w - b.w) < kGeometryEpsilon;
   }
-  // q y -q representan exactamente la misma orientación.
+  // q and -q represent exactly the same orientation.
   const double dot =
       (a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w) / (norm_a * norm_b);
   return 1.0 - std::abs(dot) < kGoalOrientationDotTolerance;
@@ -326,9 +326,9 @@ void GradientPlanner::update(NavState &nav_state) {
   }
   const auto robot_pose = nav_state.get<nav_msgs::msg::Odometry>("robot_pose");
   const auto &goal = goals.goals.front().pose;
-  // Detectar cambios del goal.
-  // La posición afecta al campo potencial/gradiente; la orientación sólo obliga
-  // a regenerar el path para actualizar correctamente la pose final.
+  // Detect goal changes.
+  // Position affects the potential and gradient fields; orientation only requires
+  // regenerating the path to update the final pose correctly.
   const bool goal_position_changed =
       !goal_initialized_ ||
       !sameGoalPosition(goal, current_goal_, goal_change_epsilon_);
@@ -351,8 +351,8 @@ void GradientPlanner::update(NavState &nav_state) {
           "Goal orientation changed: regenerating path with cached fields");
     }
   }
-  // Leer el NavMap ANTES de decidir si reutilizamos el path. Esto permite
-  // detectar cambios del mapa incluso con continuous_replan=false.
+  // Read the NavMap BEFORE deciding whether to reuse the path. This allows
+  // map changes to be detected even with continuous_replan=false.
   try {
     navmap_ = nav_state.get<::navmap::NavMap>("map.navmap");
   } catch (const std::exception &e) {
@@ -364,7 +364,7 @@ void GradientPlanner::update(NavState &nav_state) {
     RCLCPP_ERROR(get_node()->get_logger(), "NavMap is empty!");
     return;
   }
-  // Detectar cambios de geometría/topología del NavMap.
+  // Detect changes in NavMap geometry or topology.
   const std::size_t current_navmap_signature =
       compute_navmap_signature(navmap_);
   const bool map_changed = !navmap_signature_initialized_ ||
@@ -372,7 +372,7 @@ void GradientPlanner::update(NavState &nav_state) {
   if (map_changed) {
     navmap_signature_ = current_navmap_signature;
     navmap_signature_initialized_ = true;
-    // Todo lo derivado de la geometría/topología anterior deja de ser válido.
+    // Invalidate all data derived from the previous geometry or topology.
     neighbors_cached_ = false;
     neighbors_cache_.clear();
     geometry_cached_ = false;
@@ -386,8 +386,8 @@ void GradientPlanner::update(NavState &nav_state) {
                 "NavMap change detected: invalidating topology, geometry, "
                 "potential and gradient caches");
   }
-  // Sin replanning continuo sólo reutilizamos el path si ni el objetivo ni
-  // el NavMap han cambiado.
+  // Without continuous replanning, reuse the path only if neither the goal nor
+  // the NavMap has changed.
   if (!continuous_replan_ && !goal_changed && !map_changed &&
       !current_path_.poses.empty()) {
     nav_state.set("path", current_path_);
@@ -396,7 +396,7 @@ void GradientPlanner::update(NavState &nav_state) {
     }
     return;
   }
-  reset_path_state(); // limpiamos posible basura.
+  reset_path_state(); // Clear previous path state.
   if (!neighbors_cached_) {
     build_neighbors_cache(navmap_);
   }
@@ -415,7 +415,7 @@ void GradientPlanner::update(NavState &nav_state) {
       ps.pose = pose;
       current_path_.poses.push_back(ps);
     }
-    elastic_band_smoothing(current_path_); // suavizamos el path.
+    elastic_band_smoothing(current_path_); // Smooth the path.
     if (path_pub_->get_subscription_count() > 0) {
       path_pub_->publish(current_path_);
     }
@@ -436,12 +436,12 @@ GradientPlanner::compute_gradient_path(::navmap::NavMap &navmap,
                                        const geometry_msgs::msg::Pose &start,
                                        const geometry_msgs::msg::Pose &goal) {
   PROFILE_FUNCTION();
-  // 1. Localizar start y goal antes de calcular los campos.
+  // 1. Locate the start and goal before computing the fields.
   //
-  // La pose inicial puede usar closest_navcel() como fallback para tolerar
-  // pequeñas discrepancias de localización. El goal, en cambio, debe estar
-  // contenido realmente en el NavMap: no se proyecta automáticamente al
-  // triángulo más cercano.
+  // The initial pose may use closest_navcel() as a fallback to tolerate
+  // small localization discrepancies. The goal, however, must actually be
+  // contained in the NavMap: it is not automatically projected onto the
+  // nearest triangle.
   const auto start_cell = locate_cell(navmap, start.position, true);
   const auto goal_cell = locate_cell(navmap, goal.position, false);
   if (start_cell == ::navmap::NavCelId(-1) ||
@@ -449,7 +449,7 @@ GradientPlanner::compute_gradient_path(::navmap::NavMap &navmap,
     RCLCPP_ERROR(get_node()->get_logger(), "Failed to locate start/goal cell");
     return {};
   }
-  // 2. Calcular potencial + gradiente UNA SOLA VEZ por goal.
+  // 2. Compute potential and gradient fields once per goal, while the map is unchanged.
   if (!potential_field_valid_) {
     compute_potential_field(navmap, goal);
     compute_gradient_field(navmap);
@@ -476,23 +476,23 @@ GradientPlanner::compute_gradient_path(::navmap::NavMap &navmap,
                  goal_cell);
     return {};
   }
-  // 3. Inicializar path + correspondencia Pose <-> NavCel.
+  // 3. Initialize the path and Pose-to-NavCel correspondence.
   std::vector<geometry_msgs::msg::Pose> path;
   path.reserve(max_iterations_ + 2);
   current_path_cells_.clear();
   current_path_cells_.reserve(max_iterations_ + 2);
-  // Primer waypoint
+  // First waypoint.
   path.push_back(start);
   current_path_cells_.push_back(start_cell);
   auto current_cell = start_cell;
-  // 4. Estado del descenso.
+  // 4. Descent state.
   int iterations_used = 0;
-  // 5. Seguimiento del campo de gradiente.
+  // 5. Follow the gradient field.
   for (int step = 0; step < max_iterations_; ++step) {
     iterations_used = step + 1;
-    // Goal alcanzado.
+    // Goal reached.
     if (current_cell == goal_cell) {
-      // Evitar duplicar exactamente el goal si ya estuviera añadido.
+      // Avoid adding an exact duplicate of the goal.
       const auto &last = path.back().position;
       if (last.x != goal.position.x || last.y != goal.position.y ||
           last.z != goal.position.z) {
@@ -502,18 +502,18 @@ GradientPlanner::compute_gradient_path(::navmap::NavMap &navmap,
       break;
     }
     const double current_potential = potentials_[current_cell];
-    // Validar índice del campo.
+    // Validate the field index.
     if (current_cell >= gradients_.size()) {
       RCLCPP_WARN(get_node()->get_logger(), "Cell %u out of gradient range",
                   current_cell);
       break;
     }
-    // Obtener gradiente de la celda actual.
+    // Retrieve the gradient of the current cell.
     const Eigen::Vector2d raw_gradient = gradients_[current_cell];
     const double grad_magnitude = raw_gradient.norm();
-    // Gradiente prácticamente nulo: usar directamente el vecino atravesable
-    // con menor potencial. Dijkstra garantiza una dirección descendente para
-    // cualquier celda alcanzable que no sea el goal.
+    // Near-zero gradient: use the traversable neighbor with the lowest
+    // potential directly. Dijkstra provides a descending direction for
+    // reachable non-goal cells when edge costs are strictly positive.
     if (grad_magnitude < kZeroGradientThreshold) {
       RCLCPP_WARN(get_node()->get_logger(),
                   "Zero gradient at step %d, cell %u: using potential fallback",
@@ -532,13 +532,13 @@ GradientPlanner::compute_gradient_path(::navmap::NavMap &navmap,
       current_path_cells_.push_back(current_cell);
       continue;
     }
-    // Dirección del descenso dada directamente por el campo de gradiente.
-    // El caso de norma prácticamente nula ya se ha tratado arriba.
+    // The gradient field directly provides the descent direction.
+    // The near-zero norm case has already been handled above.
     Eigen::Vector2d dir = raw_gradient.normalized();
-    // Selección LOCAL de la siguiente NavCel
+    // Local selection of the next NavCel.
     //
-    // Ya NO ejecutamos closest_navcel() global.
-    // Sólo analizamos vecinos directos de current_cell.
+    // No global closest_navcel() query is needed here.
+    // Only direct neighbors of current_cell are considered.
     const auto centroid = centroids_cache_[current_cell];
     const auto &nbrs = traversable_neighbors_cache_[current_cell];
     ::navmap::NavCelId next_cell = current_cell;
@@ -558,22 +558,22 @@ GradientPlanner::compute_gradient_path(::navmap::NavMap &navmap,
         continue;
       }
       to_neighbor /= neighbor_distance;
-      // Alineación con el gradiente.
+      // Gradient alignment.
       const double alignment = dir.dot(to_neighbor);
-      // Descenso de potencial.
+      // Potential decrease.
       const double potential_drop = current_potential - potentials_[nb];
-      // Sólo permitimos avanzar hacia menor potencial.
+      // Only allow transitions toward lower potential.
       if (potential_drop <= 0.0) {
         continue;
       }
-      // Score combinado.
+      // Combined score.
       const double score = alignment + potential_drop_weight_ * potential_drop;
       if (score > best_score) {
         best_score = score;
         next_cell = nb;
       }
     }
-    // Aplicar transición a la siguiente NavCel.
+    // Apply the transition to the next NavCel.
     if (next_cell != current_cell) {
       current_cell = next_cell;
       const auto &next_centroid = centroids_cache_[current_cell];
@@ -581,7 +581,7 @@ GradientPlanner::compute_gradient_path(::navmap::NavMap &navmap,
       next_pose.position.x = next_centroid.x();
       next_pose.position.y = next_centroid.y();
       next_pose.position.z = next_centroid.z();
-      // Orientación según la dirección entre waypoints
+      // Orientation based on the direction between waypoints.
       const auto &prev_pos = path.back().position;
       const double dx = next_pose.position.x - prev_pos.x;
       const double dy = next_pose.position.y - prev_pos.y;
@@ -594,12 +594,12 @@ GradientPlanner::compute_gradient_path(::navmap::NavMap &navmap,
       } else {
         next_pose.orientation = start.orientation;
       }
-      // IMPORTANTE: pose y NavCel se añaden SIEMPRE juntas
+      // Always append the pose and its NavCel together.
       path.push_back(next_pose);
       current_path_cells_.push_back(current_cell);
     } else {
-      // El gradiente no ha producido una transición válida. Usar el descenso
-      // directo de potencial como recuperación determinista.
+      // The gradient did not produce a valid transition. Use direct potential
+      // descent as a deterministic fallback.
       const auto fallback_cell =
           find_lower_potential_neighbor(current_cell, navmap);
       if (fallback_cell == current_cell) {
@@ -615,7 +615,7 @@ GradientPlanner::compute_gradient_path(::navmap::NavMap &navmap,
       current_path_cells_.push_back(current_cell);
     }
   }
-  // 6. Verificar que el descenso ha alcanzado realmente la NavCel objetivo.
+  // 6. Verify that the descent actually reached the goal NavCel.
   if (current_cell != goal_cell) {
     RCLCPP_ERROR(get_node()->get_logger(),
                  "Gradient path failed to reach goal cell. "
@@ -625,8 +625,8 @@ GradientPlanner::compute_gradient_path(::navmap::NavMap &navmap,
     current_path_cells_.clear();
     return {};
   }
-  // Ya estamos en la NavCel objetivo. Añadir las coordenadas exactas del goal
-  // solo si todavía no coinciden con el último waypoint.
+  // The goal NavCel has been reached. Append the exact goal coordinates
+  // only if they differ from the last waypoint.
   const auto &last = path.back().position;
   if (last.x != goal.position.x || last.y != goal.position.y ||
       last.z != goal.position.z) {
@@ -634,17 +634,17 @@ GradientPlanner::compute_gradient_path(::navmap::NavMap &navmap,
     current_path_cells_.push_back(goal_cell);
   }
 
-  // La última pose representa el objetivo: conservar siempre la orientación
-  // solicitada, incluso si su posición ya coincidía con el último waypoint.
+  // The final pose represents the goal: always preserve the requested
+  // orientation, even if its position already matches the last waypoint.
   path.back().orientation = goal.orientation;
 
-  // 7. Verificación crítica Pose <-> NavCel.
+  // 7. Check the Pose-to-NavCel correspondence.
   if (path.size() != current_path_cells_.size()) {
     RCLCPP_ERROR(get_node()->get_logger(),
                  "Path/Cell mismatch: poses=%zu cells=%zu", path.size(),
                  current_path_cells_.size());
   }
-  // 8. Calcular correctamente la longitud.
+  // 8. Compute the path length.
   double path_length = 0.0;
   for (size_t i = 1; i < path.size(); ++i) {
     const auto &a = path[i - 1].position;
@@ -680,7 +680,7 @@ void GradientPlanner::compute_potential_field(
     ::navmap::NavMap &navmap, const geometry_msgs::msg::Pose &goal) {
   PROFILE_FUNCTION();
   const size_t n = navmap.navcels.size();
-  // Reutilizar vector si el tamaño no cambia (evita realloc).
+  // Reuse the vector when its size is unchanged (avoids reallocation).
   if (potentials_.size() != n) {
     potentials_.assign(n, std::numeric_limits<double>::infinity());
   } else {
@@ -692,7 +692,7 @@ void GradientPlanner::compute_potential_field(
     RCLCPP_ERROR(get_node()->get_logger(), "Goal cell not found");
     return;
   }
-  // Dijkstra desde el goal (potencial = distancia mínima al objetivo).
+  // Run Dijkstra from the goal (potential = minimum distance to the goal).
   std::priority_queue<QueueElement, std::vector<QueueElement>,
                       std::greater<QueueElement>>
       pq;
@@ -718,7 +718,7 @@ void GradientPlanner::compute_potential_field(
       }
     }
   }
-  // Publicar capa de potencial solo si hay suscriptores.
+  // Publish the potential layer only when subscribers are present.
   if (potential_layer_pub_->get_subscription_count() == 0) {
     return;
   }
@@ -787,7 +787,7 @@ Eigen::Vector2d GradientPlanner::compute_gradient_at_cell(
     if (dist < kGeometryEpsilon) {
       continue;
     }
-    dir /= dist; // normalizar.
+    dir /= dist; // Normalize.
     const double w = 1.0 / (dist + kGradientWeightEpsilon);
     gradient += ((potentials[nb] - potentials[cell_id]) * w) * dir;
     ++valid_count;
@@ -798,7 +798,7 @@ Eigen::Vector2d GradientPlanner::compute_gradient_at_cell(
     return Eigen::Vector2d::Zero();
   }
   gradient /= valid_count;
-  return -gradient; // apunta hacia el descenso del potencial.
+  return -gradient; // Points toward decreasing potential.
 }
 // Smooth_gradients.
 void GradientPlanner::smooth_gradients(const ::navmap::NavMap & /*navmap*/) {
@@ -856,7 +856,7 @@ GradientPlanner::locate_cell(const ::navmap::NavMap &navmap,
               point.y, point.z);
   return ::navmap::NavCelId(-1);
 }
-// Caché de vecinos.
+// Neighbor cache.
 void GradientPlanner::build_neighbors_cache(
     const ::navmap::NavMap &navmap) const {
   PROFILE_FUNCTION();
@@ -877,7 +877,7 @@ GradientPlanner::get_neighbors(const ::navmap::NavMap &navmap,
   }
   return neighbors_cache_[cell_id];
 }
-// Caché geométrica derivada del NavMap.
+// Geometry cache derived from the NavMap.
 void GradientPlanner::build_geometry_cache(const ::navmap::NavMap &navmap) {
   PROFILE_FUNCTION();
   if (!neighbors_cached_) {
@@ -887,13 +887,13 @@ void GradientPlanner::build_geometry_cache(const ::navmap::NavMap &navmap) {
   centroids_cache_.resize(n);
   traversable_neighbors_cache_.clear();
   traversable_neighbors_cache_.resize(n);
-  // Los centroides sólo dependen de la geometría del NavMap.
+  // Centroids depend only on NavMap geometry.
   for (size_t i = 0; i < n; ++i) {
     const auto c = navmap.navcel_centroid(i);
     centroids_cache_[i] = Eigen::Vector3f(c.x(), c.y(), c.z());
   }
-  // Precalcular una única vez las transiciones válidas para robot_width_.
-  // Dijkstra, gradiente, smoothing y fallback reutilizan esta lista.
+  // Precompute valid transitions for robot_width_ once per cache rebuild.
+  // Dijkstra, gradient computation, smoothing and fallback reuse this list.
   for (size_t i = 0; i < n; ++i) {
     auto &traversable = traversable_neighbors_cache_[i];
     const auto &neighbors = neighbors_cache_[i];
@@ -934,8 +934,8 @@ GradientPlanner::shared_edge_width(::navmap::NavCelId cell_a,
       }
     }
   }
-  // Dos NavCels triangulares vecinas deben compartir exactamente una arista,
-  // es decir, dos vértices. Si no es así, no consideramos válida la transición.
+  // Two neighboring triangular NavCels must share exactly one edge,
+  // i.e., two vertices. Otherwise, the transition is considered invalid.
   if (shared_count != 2) {
     return 0.0;
   }
@@ -1021,10 +1021,10 @@ void GradientPlanner::debug_stuck_cell(::navmap::NavCelId cell_id,
 // Reset_path_state.
 void GradientPlanner::reset_path_state() {
   PROFILE_FUNCTION();
-  // Solo resetea el estado de planificación (potenciales, gradientes, path).
-  // La caché de vecinos se mantiene si el mapa no ha cambiado.
-  // No hacemos clear()+resize() — se reutilizan los vectores en compute_*
-  // mediante std::fill, lo cual evita realloc si el tamaño no cambia.
+  // Reset only the current path; cached potential and gradient fields remain intact.
+  // The neighbor cache is retained if the map has not changed.
+  // The compute_* functions reuse vectors through std::fill rather than
+  // clear()+resize(), avoiding reallocation when the size is unchanged.
   current_path_.poses.clear();
 }
 // Elastic_band_smoothing.
@@ -1035,12 +1035,12 @@ void GradientPlanner::elastic_band_smoothing(nav_msgs::msg::Path &path) {
   }
   const size_t N = path.poses.size();
 
-  // La banda elástica recalcula las orientaciones intermedias a partir de la
-  // tangente del camino, pero debe preservar la orientación solicitada en el
+  // Elastic Band recomputes intermediate orientations from the path
+  // tangent, but must preserve the orientation requested at the
   // goal.
   const auto goal_orientation = path.poses.back().pose.orientation;
 
-  // 1. Preparar puntos y reutilizar NavCel IDs del GradientPlanner.
+  // 1. Prepare points and reuse the GradientPlanner NavCel IDs.
   std::vector<Eigen::Vector3f> original_points(N);
   std::vector<Eigen::Vector3f> current_points(N);
   std::vector<Eigen::Vector3f> next_points(N);
@@ -1060,9 +1060,9 @@ void GradientPlanner::elastic_band_smoothing(nav_msgs::msg::Path &path) {
     current_points[i] = point;
     next_points[i] = point;
   }
-  // 2. Precalcular los vértices de la NavCel asociada a cada waypoint.
-  // Evita repetir accesos a navmap_.positions en cada iteración del Elastic
-  // Band.
+  // 2. Precompute the vertices of each waypoint's associated NavCel.
+  // This avoids repeated access to navmap_.positions in every Elastic Band
+  // iteration.
   std::vector<std::array<Eigen::Vector3f, 3>> cell_vertices(N);
   std::vector<bool> valid_cells(N, false);
   for (size_t i = 0; i < N; ++i) {
@@ -1076,13 +1076,13 @@ void GradientPlanner::elastic_band_smoothing(nav_msgs::msg::Path &path) {
                         navmap_.positions.at(triangle.v[2])};
     valid_cells[i] = true;
   }
-  // 3. Elastic Band iterativo con convergencia.
+  // 3. Iterative Elastic Band with a convergence criterion.
   int iterations_used = 0;
   const auto t_smoothing_start = std::chrono::high_resolution_clock::now();
   for (int iteration = 0; iteration < elastic_max_iterations_; ++iteration) {
     iterations_used = iteration + 1;
     float max_displacement = 0.0f;
-    // Los extremos permanecen fijos.
+    // Keep the endpoints fixed.
     next_points.front() = current_points.front();
     next_points.back() = current_points.back();
     for (size_t i = 1; i + 1 < N; ++i) {
@@ -1101,7 +1101,7 @@ void GradientPlanner::elastic_band_smoothing(nav_msgs::msg::Path &path) {
       candidate.y() += static_cast<float>(
           elastic_w_data_ * (xi_original.y() - xi.y()) +
           elastic_w_smooth_ * (xm.y() + xp.y() - 2.0 * xi.y()));
-      // Mantener el waypoint dentro de SU NavCel.
+      // Keep the waypoint inside its associated NavCel.
       const auto &vertices = cell_vertices[i];
       const Eigen::Vector3f constrained = ::navmap::closest_point_on_triangle(
           candidate, vertices[0], vertices[1], vertices[2]);
@@ -1110,7 +1110,7 @@ void GradientPlanner::elastic_band_smoothing(nav_msgs::msg::Path &path) {
       next_points[i] = constrained;
     }
     current_points.swap(next_points);
-    // Convergencia.
+    // Convergence.
     if (max_displacement < elastic_convergence_threshold_) {
       break;
     }
@@ -1122,13 +1122,13 @@ void GradientPlanner::elastic_band_smoothing(nav_msgs::msg::Path &path) {
   RCLCPP_INFO(get_node()->get_logger(),
               "Elastic band | iterations=%d/%d | poses=%zu | smoothing=%.3f ms",
               iterations_used, elastic_max_iterations_, N, smoothing_total_ms);
-  // 4. Copiar puntos suavizados al Path.
+  // 4. Copy the smoothed points into the path.
   for (size_t i = 0; i < N; ++i) {
     path.poses[i].pose.position.x = current_points[i].x();
     path.poses[i].pose.position.y = current_points[i].y();
     path.poses[i].pose.position.z = current_points[i].z();
   }
-  // 5. Recalcular orientación.
+  // 5. Recompute orientations.
   for (size_t i = 0; i + 1 < N; ++i) {
     const auto current = path.poses[i].pose.position;
     const auto &next = path.poses[i + 1].pose.position;
@@ -1144,7 +1144,7 @@ void GradientPlanner::elastic_band_smoothing(nav_msgs::msg::Path &path) {
     q.z = std::sin(yaw * 0.5);
     q.w = std::cos(yaw * 0.5);
   }
-  // Mantener en la última pose la orientación solicitada en el objetivo.
+  // Preserve the requested goal orientation in the final pose.
   path.poses.back().pose.orientation = goal_orientation;
 }
 } // namespace navmap

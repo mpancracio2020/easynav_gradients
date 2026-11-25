@@ -54,16 +54,16 @@ public:
   void update(NavState &nav_state) override;
 
 protected:
-  // ── Parámetros ────────────────────────────────────────────────────────────
+  // ── Parameters ──────────────────────────────────────────────────────────
   bool continuous_replan_{true};
   int max_iterations_{500};
-  double smoothing_factor_{0.4}; ///< Suavizado del campo de gradiente
+  double smoothing_factor_{0.4}; ///< Gradient field smoothing
   double robot_width_{0.0};
 
-  // Detección de cambios.
+  // Change detection.
   double goal_change_epsilon_{1e-3};
 
-  // Selección de vecinos.
+  // Neighbor selection.
   double potential_drop_weight_{0.75};
 
   // Elastic Band.
@@ -72,7 +72,7 @@ protected:
   int elastic_max_iterations_{15};
   double elastic_convergence_threshold_{2e-3};
 
-  // ── Estado del planificador ───────────────────────────────────────────────
+  // ── Planner state ───────────────────────────────────────────────────────
   nav_msgs::msg::Path current_path_;
   geometry_msgs::msg::Pose current_goal_;
   ::navmap::NavMap navmap_;
@@ -81,109 +81,109 @@ protected:
   rclcpp::Publisher<navmap_ros_interfaces::msg::NavMapLayer>::SharedPtr
       potential_layer_pub_;
 
-  // ── Estructuras internas ─────────────────────────────────────────────────
+  // ── Internal structures ─────────────────────────────────────────────────
   std::vector<double> potentials_;
   std::vector<Eigen::Vector2d> gradients_;
 
-  // ── Cachés derivadas del NavMap ───────────────────────────────────────────
-  // Topología bruta de vecindad.
+  // ── NavMap-derived caches ───────────────────────────────────────────────
+  // Raw neighbor topology.
   mutable std::vector<std::vector<::navmap::NavCelId>> neighbors_cache_;
   mutable bool neighbors_cached_ = false;
 
-  // Geometría estática y transiciones que cumplen robot_width_.
+  // Static geometry and transitions satisfying robot_width_.
   std::vector<Eigen::Vector3f> centroids_cache_;
   std::vector<std::vector<::navmap::NavCelId>> traversable_neighbors_cache_;
   bool geometry_cached_{false};
 
-  // ── Firma del NavMap ──────────────────────────────────────────────────────
-  // Permite invalidar las cachés si cambia la geometría o la topología,
-  // incluso cuando el número de NavCels permanece constante.
+  // ── NavMap signature ────────────────────────────────────────────────────
+  // Allows cache invalidation when geometry or topology changes,
+  // even if the number of NavCels remains unchanged.
   std::size_t navmap_signature_{0};
   bool navmap_signature_initialized_{false};
 
-  // ── Métodos privados ──────────────────────────────────────────────────────
+  // ── Internal methods ────────────────────────────────────────────────────
 
-  /// \brief Planificación completa: campo potencial + gradiente + seguimiento.
+  /// \brief Full planning: potential field, gradient field and descent.
   std::vector<geometry_msgs::msg::Pose>
   compute_gradient_path(::navmap::NavMap &navmap,
                         const geometry_msgs::msg::Pose &start,
                         const geometry_msgs::msg::Pose &goal);
 
-  /// \brief Propaga el campo potencial desde el goal con Dijkstra.
+  /// \brief Propagate the potential field from the goal using Dijkstra.
   void compute_potential_field(::navmap::NavMap &navmap,
                                const geometry_msgs::msg::Pose &goal);
 
-  /// \brief Calcula el campo de gradientes a partir del campo potencial.
+  /// \brief Compute the gradient field from the potential field.
   void compute_gradient_field(const ::navmap::NavMap &navmap);
 
-  /// \brief Suaviza el campo de gradientes mediante promedio de vecinos.
+  /// \brief Smooth the gradient field by averaging neighboring gradients.
   void smooth_gradients(const ::navmap::NavMap &navmap);
 
-  /// \brief Calcula el vector gradiente en una celda concreta.
+  /// \brief Compute the gradient vector for a given cell.
   Eigen::Vector2d
   compute_gradient_at_cell(::navmap::NavCelId cell_id,
                            const std::vector<double> &potentials,
                            const ::navmap::NavMap &navmap) const;
 
-  /// \brief Localiza la NavCel que contiene un punto dado.
-  /// \param allow_closest_fallback Si es true, usa closest_navcel() cuando el
-  /// punto no está contenido en ninguna NavCel.
+  /// \brief Locate the NavCel containing a given point.
+  /// \param allow_closest_fallback If true, use closest_navcel() when the
+  /// point is not contained in any NavCel.
   ::navmap::NavCelId locate_cell(const ::navmap::NavMap &navmap,
                                  const geometry_msgs::msg::Point &point,
                                  bool allow_closest_fallback) const;
 
-  /// \brief Devuelve los vecinos de una celda (con caché).
-  /// \note Devuelve referencia const — no copiar el vector.
+  /// \brief Return the cached neighbors of a cell.
+  /// \note Returns a const reference; avoid copying the vector.
   const std::vector<::navmap::NavCelId> &
   get_neighbors(const ::navmap::NavMap &navmap,
                 ::navmap::NavCelId cell_id) const;
 
-  /// \brief Construye la caché completa de vecinos para el NavMap actual.
+  /// \brief Build the complete neighbor cache for the current NavMap.
   void build_neighbors_cache(const ::navmap::NavMap &navmap) const;
 
-  /// \brief Precalcula centroides y vecinos atravesables para el NavMap actual.
+  /// \brief Precompute centroids and traversable neighbors for the current NavMap.
   void build_geometry_cache(const ::navmap::NavMap &navmap);
 
-  /// \brief Longitud de la arista compartida entre dos NavCels.
-  /// \return Longitud en metros; 0.0 si no comparten exactamente una arista.
+  /// \brief Length of the shared edge between two NavCels.
+  /// \return Length in meters; 0.0 if the cells do not share exactly one edge.
   double shared_edge_width(::navmap::NavCelId cell_a, ::navmap::NavCelId cell_b,
                            const ::navmap::NavMap &navmap) const;
 
-  /// \brief Comprueba si el robot puede atravesar la arista compartida entre
-  /// dos NavCels.
+  /// \brief Check whether the robot can traverse the shared edge between
+  /// two NavCels.
   bool is_transition_traversable(::navmap::NavCelId from, ::navmap::NavCelId to,
                                  const ::navmap::NavMap &navmap) const;
 
-  /// \brief Devuelve el vecino atravesable con menor potencial que la celda
-  ///        actual. Devuelve current_cell si no existe ninguno.
+  /// \brief Return the traversable neighbor with the lowest potential below
+  ///               that of the current cell. Return current_cell if none exists.
   ::navmap::NavCelId
   find_lower_potential_neighbor(::navmap::NavCelId current_cell,
                                 const ::navmap::NavMap &navmap) const;
 
-  /// \brief Crea una Pose a partir del centroide de una celda.
+  /// \brief Create a Pose from the centroid of a cell.
   geometry_msgs::msg::Pose create_pose_from_cell(
       ::navmap::NavCelId cell_id, const ::navmap::NavMap &navmap,
       const geometry_msgs::msg::Quaternion &orientation) const;
 
-  /// \brief Resetea el estado local del seguimiento del gradiente y el path.
-  ///        No modifica los campos potencial ni de gradientes cacheados.
+  /// \brief Reset the current path without invalidating cached fields.
+  ///               Cached potential and gradient fields are not modified.
   void reset_path_state();
 
-  /// \brief Suavizado elastic-band sobre el path generado.
+  /// \brief Apply Elastic Band smoothing to the generated path.
   void elastic_band_smoothing(nav_msgs::msg::Path &path);
 
-  /// \brief Diagnóstico de celda estancada (debug).
+  /// \brief Report diagnostics for a stuck cell.
   void debug_stuck_cell(::navmap::NavCelId cell_id,
                         const ::navmap::NavMap &navmap);
 
   std::ofstream metrics_file_;
 
-  // ── Caché de potencial y gradiente ────────────────────────────────────────
-  /// \brief Indica si el campo potencial y el campo de gradientes
-  ///        corresponden al objetivo actual.
+  // ── Potential and gradient cache ────────────────────────────────────────
+  /// \brief Indicates whether the potential and gradient fields are valid
+  ///               for the current goal and map.
   bool potential_field_valid_{false};
 
-  /// \brief Indica si ya se ha recibido al menos un objetivo.
+  /// \brief Indicates whether at least one goal has been received.
   bool goal_initialized_{false};
 
   std::vector<::navmap::NavCelId> current_path_cells_;
