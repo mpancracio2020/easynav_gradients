@@ -1,0 +1,17 @@
+EasyNav Gradients
+Copyright 2026 Marvin Pancracio Manso
+
+This software was adapted from the EasyNav NavMap A* planner:
+https://github.com/EasyNavigation/easynav_plugins
+
+It integrates with EasyNavigation and NavMap:
+https://github.com/EasyNavigation/EasyNavigation
+https://github.com/EasyNavigation/NavMap
+
+Modifications include potential propagation, gradient estimation and descent,
+cache management, and Elastic Band smoothing.
+
+PRE-RELEASE ATTRIBUTION REVIEW: this notice records known project provenance.
+Exact upstream revision and applicable copyright and NOTICE text must still be
+verified and preserved before public distribution. This is not a substitute
+for any required upstream notices.
