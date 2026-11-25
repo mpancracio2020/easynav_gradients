@@ -6,6 +6,13 @@ planner_node:
     # =========================================================================
 
     gradients:
+      # Optional diagnostics (disabled by default).
+      # Use distinct output paths for concurrent planner instances.
+      profiling_enabled: false
+      metrics_enabled: false
+      profiling_output_file: "/tmp/gradient_planner_profile.csv"
+      metrics_output_file: "/tmp/planner_metrics.csv"
+
       # -----------------------------------------------------------------------
       # Replanificación y límites generales
       # -----------------------------------------------------------------------
