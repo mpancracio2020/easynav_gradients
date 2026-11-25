@@ -10,7 +10,7 @@ docker run --rm easynav-gradients:jazzy ros2 pkg prefix easynav_gradients
 docker run --rm -it easynav-gradients:jazzy
 ```
 
-For machines with limited memory use --build-arg BUILD_JOBS=1. The build installs dependencies for the imported repositories, which can require substantial disk space. It builds the planner and its dependency closure with upstream tests disabled, then rebuilds only the planner with testing enabled and runs its plugin discovery and instantiation tests. These smoke tests do not initialize the planner or validate trajectory generation.
+For machines with limited memory use --build-arg BUILD_JOBS=1. The build installs dependencies for the imported repositories, which can require substantial disk space. It builds the planner and its dependency closure with upstream tests disabled, then rebuilds only the planner with testing enabled and runs eight tests covering plugin discovery, instantiation, parameter initialization and synthetic mesh planning, including disconnected goals, path reuse, topology changes and final orientation. The maintainer reported 8/8 passing in 153 ms. These tests do not establish full collision clearance or simulation integration.
 
 Inspect the exact resolved revisions after a successful build:
 
@@ -18,7 +18,7 @@ Inspect the exact resolved revisions after a successful build:
 docker run --rm easynav-gradients:jazzy cat /opt/dependencies-resolved.repos
 ```
 
-Run the plugin smoke tests again from the built image:
+Run the complete automated test suite again from the built image:
 
 ```bash
 docker run --rm easynav-gradients:jazzy /opt/gradients_ws/build/easynav_gradients/tests/test_plugin_loading
