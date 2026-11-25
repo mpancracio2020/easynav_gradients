@@ -4,7 +4,7 @@ Gradient-based global path planning on triangular navigation meshes for EasyNav 
 
 Developed by Marvin Pancracio Manso as part of a Robotics Engineering bachelor's thesis at Universidad Rey Juan Carlos (URJC), this C++ planner extends the EasyNav NavMap A* planner into a potential-field and gradient-descent approach.
 
-**Status:** private pre-release. The original planner has been functionally validated by its author; an isolated ROS 2 Jazzy Docker build and package installation were verified by its author on 2026-11-25. Eight automated plugin and synthetic mesh tests passed in the maintainer's Docker build. CI build confirmation, broader regression testing and attribution review are pending.
+**Status:** academic release candidate (v0.1.0). The original planner has been functionally validated by its author; an isolated ROS 2 Jazzy Docker build and package installation were verified by its author on 2026-11-25. Eight automated plugin and synthetic mesh tests passed in the maintainer's Docker build. CI build confirmation and broader regression testing remain pending.
 
 ## Features
 
@@ -47,9 +47,10 @@ For an isolated build without an existing host ROS workspace, see [Docker instru
 In an existing compatible ROS 2 workspace, clone this repository under src (do not keep two packages named easynav_gradients in one workspace):
 
 ```bash
-cd ~/workshop_ws/src
+mkdir -p ~/easynav_release_ws/src
+cd ~/easynav_release_ws/src
 git clone https://github.com/mpancracio2020/easynav_gradients.git
-cd ~/workshop_ws
+cd ~/easynav_release_ws
 source /opt/ros/jazzy/setup.bash
 rosdep install --from-paths src --ignore-src -r -y
 colcon build --packages-up-to easynav_gradients --symlink-install
@@ -105,4 +106,4 @@ The implementation was adapted from the EasyNav NavMap A* planner in [easynav_pl
 
 ## License
 
-Apache License 2.0 is the intended release license. See [LICENSE](LICENSE). Source headers have been aligned based on the author's confirmation that the source A* planner used Apache-2.0. Exact upstream revision, copyright and NOTICE verification remain release gates; this snapshot is not yet cleared for public distribution.
+Apache License 2.0 is the intended release license. See [LICENSE](LICENSE). Source headers have been aligned based on the author's confirmation that the source A* planner used Apache-2.0. The pinned upstream reference revision and copyright notices are documented in NOTICE. The historical starting revision is unknown. The maintainer has confirmed distribution rights under Apache-2.0.
