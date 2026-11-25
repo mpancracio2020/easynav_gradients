@@ -13,7 +13,8 @@ Target license: Apache-2.0. This document records pending checks, not a legal cl
 
 - [ ] Identify exact upstream revisions and any copied or adapted source files, including starter templates.
 - [x] Record the author's confirmation that the original A* planner was Apache-2.0.
-- [ ] Verify the exact upstream revision and applicable notices against that confirmation.
+- [x] Verify Apache-2.0 and Copyright 2025 Intelligent Robotics Lab in both AStarPlanner source files at the pinned reference revision 703b73ae55bf6a419bf309b26084ca523b063ddf.
+- [ ] Confirm the historical starting revision or document it as unknown.
 - [ ] Confirm ownership or permission for all original contributions, including university or collaborator rights where applicable.
 - [ ] Preserve required copyright, attribution, modification and NOTICE information.
 - [x] Prepare Apache-2.0 planner headers on the review branch.
