@@ -1,0 +1,11 @@
+<!-- easynav_gradients/plugins.xml -->
+<library path="easynav_gradients">
+  <class 
+    name="easynav_navmap_gradients/GradientPlanner"
+    type="easynav::navmap::GradientPlanner"
+    base_class_type="easynav::PlannerMethodBase">
+    <description>
+      Gradient-based navigation planner using potential fields on NavMap.
+    </description>
+  </class>
+</library>

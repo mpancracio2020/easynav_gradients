@@ -1,0 +1,57 @@
+planner_node:
+  ros__parameters:
+    # =========================================================================
+    # GradientPlanner – EasyNav
+    # Plugin name: easynav_gradients
+    # =========================================================================
+
+    gradients:
+      # -----------------------------------------------------------------------
+      # Replanificación y límites generales
+      # -----------------------------------------------------------------------
+
+      # Recalcula el path desde la pose actual en cada update().
+      # El potencial y el gradiente se reutilizan mientras goal y NavMap no cambien.
+      continuous_replan: false
+
+      # Número máximo de iteraciones del descenso por planificación (> 0).
+      max_iterations: 500
+
+      # Tolerancia para considerar que dos goals tienen la misma posición [m] (> 0).
+      goal_change_epsilon: 0.001
+
+      # -----------------------------------------------------------------------
+      # Campo de gradiente y selección de la siguiente NavCel
+      # -----------------------------------------------------------------------
+
+      # Mezcla del gradiente de una NavCel con los gradientes de sus vecinos [0, 1].
+      smoothing_factor: 0.4
+
+      # Peso del descenso de potencial frente a la alineación con el gradiente (>= 0).
+      potential_drop_weight: 0.75
+
+      # -----------------------------------------------------------------------
+      # Restricción de ancho entre NavCels
+      # -----------------------------------------------------------------------
+
+      # Ancho mínimo requerido en la arista compartida entre dos NavCels [m].
+      # Un valor <= 0 desactiva este filtro.
+      robot_width: 0.8
+
+      # -----------------------------------------------------------------------
+      # Elastic Band
+      # -----------------------------------------------------------------------
+
+      # Peso que mantiene cada waypoint cerca de su posición original (>= 0).
+      elastic_w_data: 0.10
+
+      # Peso de suavizado entre waypoints consecutivos (>= 0).
+      elastic_w_smooth: 0.35
+
+      # Máximo de iteraciones del Elastic Band (> 0).
+      # 15 permite alcanzar una convergencia más estable en los paths probados.
+      elastic_max_iterations: 15
+
+      # Desplazamiento máximo [m] por debajo del cual se considera convergido (> 0).
+      # 2 mm evita iteraciones finales con mejoras visualmente despreciables.
+      elastic_convergence_threshold: 0.002
