@@ -38,9 +38,11 @@ The potential and gradient fields are reused when the map and goal position rema
 - Compatible [EasyNavigation](https://github.com/EasyNavigation/EasyNavigation), [NavMap](https://github.com/EasyNavigation/NavMap) and [easynav_plugins](https://github.com/EasyNavigation/easynav_plugins) source packages.
 - Dependencies declared in [package.xml](package.xml).
 
-Exact upstream revisions have not yet been pinned. Use the compatible EasyNav workspace in which the planner was developed until a reproducible dependency manifest is available.
+A candidate dependency manifest is available for isolated builds. Exact compatible commit SHAs have not yet been established.
 
 ## Build
+
+For an isolated build without an existing host ROS workspace, see [Docker instructions](docker/README.md). The candidate upstream release set is in [easynav_gradients.repos](easynav_gradients.repos); compatibility is pending a successful CI build.
 
 In an existing compatible ROS 2 workspace, clone this repository under src (do not keep two packages named easynav_gradients in one workspace):
 
